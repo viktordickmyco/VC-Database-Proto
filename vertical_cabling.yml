@@ -6,7 +6,7 @@ info:
 
     The vertical cabling platform is an initialite from MyConnectivity. The purpose of the platforme is to create a centralized repository of information on vertical cabling in Luxembourg that can be shared among all operators.
     # Data model
-    In this project, we deal with apartment buildings and mixed-use buildings. The datamodel must support the description of a site, the building blocks, the building units (such as apartments and technical rooms) and the Network Termination Points (NTPs). The NTPs are the network cabinet owned by network infrastructure providers, enabling the delivery of internet services. Ultimately, we need to document the links (i.e. cables) existing between NTPs and Units.<br><br><img src="https://eezyr.com/img/myc-site-example.png" width="300"><br><br><img src="https://eezyr.com/img/myc-relation model.png" width="500">
+    In this project, we deal with apartment buildings and mixed-use buildings. The datamodel must support the description of a site, the building blocks, the building units (such as apartments and technical rooms) and the Network Termination Points (NTPs). The NTPs are the network cabinet owned by network infrastructure providers, enabling the delivery of internet services. Ultimately, we need to document the links (i.e. cables) existing between NTPs and Units.<br><br><img src="https://raw.githubusercontent.com/viktordickmyco/VC-Database-Proto/ab7e6b8b36530feab4f0c6e3f3b9353cbc438bdb/myc-site-example.png" width="300"><br><br><img src="https://raw.githubusercontent.com/viktordickmyco/VC-Database-Proto/ab7e6b8b36530feab4f0c6e3f3b9353cbc438bdb/myc-relation%20model.png" width="500">
 paths:
   /block-pictures/:
     get:
