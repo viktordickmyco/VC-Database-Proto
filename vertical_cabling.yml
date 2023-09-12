@@ -1,0 +1,2406 @@
+openapi: 3.0.3
+info:
+  title: Vartical Cabling API
+  version: 0.0.1
+  description: |2-
+
+    The vertical cabling platform is an initialite from MyConnectivity. The purpose of the platforme is to create a centralized repository of information on vertical cabling in Luxembourg that can be shared among all operators.
+    # Data model
+    In this project, we deal with apartment buildings and mixed-use buildings. The datamodel must support the description of a site, the building blocks, the building units (such as apartments and technical rooms) and the Network Termination Points (NTPs). The NTPs are the network cabinet owned by network infrastructure providers, enabling the delivery of internet services. Ultimately, we need to document the links (i.e. cables) existing between NTPs and Units.<br><br><img src="https://eezyr.com/img/myc-site-example.png" width="300"><br><br><img src="https://eezyr.com/img/myc-relation model.png" width="500">
+paths:
+  /block-pictures/:
+    get:
+      operationId: block_pictures_list
+      description: " This endpoint can be used to retrieve all images of a specific\
+        \ block. \n                          Getting the images of a specific block\
+        \ is done by adding the query parameter block with the uuid of the desired\
+        \ block. "
+      summary: List all block pictures.
+      parameters:
+      - in: query
+        name: block
+        schema:
+          type: string
+          format: uuid
+        description: The uuid of the block for which you want to retrieve the associated
+          images
+      tags:
+      - block-pictures
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BlockPicture'
+          description: ''
+    post:
+      operationId: block_pictures_create
+      description: Add a picture to a block.
+      summary: Add a picture to a block.
+      tags:
+      - block-pictures
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                picture:
+                  description: The picture to be stored
+                  type: string
+                  format: binary
+                block:
+                  description: The uuid of the block for which a picture is being
+                    added.
+                  type: string
+              required:
+              - picture
+              - block
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockPicture'
+          description: ''
+  /block-pictures/{uuid}/:
+    delete:
+      operationId: block_pictures_destroy
+      description: Delete a picture associated to a block.
+      summary: Delete a picture associated to a block.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this block picture.
+        required: true
+      tags:
+      - block-pictures
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /blocks/:
+    get:
+      operationId: blocks_list
+      description: " This endpoint can be used to retrieve all blocks or all blocks\
+        \ linked to a specific site. \n                          Getting the blocks\
+        \ of specific site is done by adding the query parameter site with the uuid\
+        \ of the desired site. "
+      summary: List all blocks.
+      parameters:
+      - in: query
+        name: name
+        schema:
+          type: string
+        description: The exact name of the blocks you want to retrieve.
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: oredering
+        schema:
+          type: string
+        description: Can be used to order the result by name (ascending or descending).
+          e.g. `name` will order the result by ascending names, `-name` will order
+          the results by descending names.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: The search query parameter can be used to search the blocks by
+          their name. The search will return any block that contain the searched text
+          in their name.
+      - in: query
+        name: site
+        schema:
+          type: string
+          format: uuid
+        description: The uuid of the site for which you want to retrieve the associated
+          blocks.
+      tags:
+      - blocks
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BlockDetail'
+          description: ''
+    post:
+      operationId: blocks_create
+      description: Add a new block to an existing site. To add pictures to the block,
+        you have first to create a block and then use the endpoint block-pictures.
+      summary: Add a new block.
+      tags:
+      - blocks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Block'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Block'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Block'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+          description: ''
+  /blocks/{uuid}/:
+    get:
+      operationId: blocks_retrieve
+      description: ' This endpoint allows you to retrieve a block by its UUID. '
+      summary: Get a block by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this block.
+        required: true
+      tags:
+      - blocks
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockDetail'
+          description: ''
+    put:
+      operationId: blocks_update
+      description: ' This endpoint allows you to update an existing block. Updating
+        images needs to be done via the dedicated endpoint block-images.'
+      summary: Update a block by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this block.
+        required: true
+      tags:
+      - blocks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Block'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Block'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Block'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+          description: ''
+    patch:
+      operationId: blocks_partial_update
+      description: ' This endpoint allows you to update an existing block partially,
+        by only sending the parameters you want to update. Updating images needs to
+        be done via the dedicated endpoint block-images. '
+      summary: Partially update a block by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this block.
+        required: true
+      tags:
+      - blocks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBlock'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBlock'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBlock'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Block'
+          description: ''
+    delete:
+      operationId: blocks_destroy
+      description: Delete a specific block. This will also delete all the associated
+        images.
+      summary: Delete a block.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this block.
+        required: true
+      tags:
+      - blocks
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /ntps/:
+    get:
+      operationId: ntps_list
+      description: " This endpoint can be used to retrieve all NTPs. \n          \
+        \                You can filter the NTPs using the different filters described\
+        \ below. "
+      summary: List all NTPs.
+      parameters:
+      - in: query
+        name: operator
+        schema:
+          type: string
+        description: The name of the operator
+      - in: query
+        name: operatorNtpIdentifier
+        schema:
+          type: string
+        description: Operator's NTP identifier
+      tags:
+      - ntps
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NetworkTerminationPoint'
+          description: ''
+    post:
+      operationId: ntps_create
+      description: Add a new NTP.
+      summary: Add a new NTP.
+      tags:
+      - ntps
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NetworkTerminationPoint'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NetworkTerminationPoint'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NetworkTerminationPoint'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkTerminationPoint'
+          description: ''
+  /ntps/{uuid}/:
+    get:
+      operationId: ntps_retrieve
+      description: ' This endpoint allows you to retrieve an NTP by its UUID. '
+      summary: Get an NTP by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this network termination point.
+        required: true
+      tags:
+      - ntps
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkTerminationPoint'
+          description: ''
+    put:
+      operationId: ntps_update
+      description: ' This endpoint allows you to update an existing NTP.'
+      summary: Update an NTP by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this network termination point.
+        required: true
+      tags:
+      - ntps
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NetworkTerminationPoint'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NetworkTerminationPoint'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NetworkTerminationPoint'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkTerminationPoint'
+          description: ''
+    patch:
+      operationId: ntps_partial_update
+      description: ' This endpoint allows you to update an existing NTP partially,
+        by only sending the parameters you want to update. '
+      summary: Partially update an NTP by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this network termination point.
+        required: true
+      tags:
+      - ntps
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNetworkTerminationPoint'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNetworkTerminationPoint'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNetworkTerminationPoint'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkTerminationPoint'
+          description: ''
+    delete:
+      operationId: ntps_destroy
+      description: Delete a specific NTP.
+      summary: Delete an NTP.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this network termination point.
+        required: true
+      tags:
+      - ntps
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /operators/:
+    get:
+      operationId: operators_list
+      description: ' This endpoint can be used to retrieve all operators. '
+      summary: List all operators.
+      parameters:
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: The search query parameter can be used to search the operators
+          by their name. The search will return any operator that contain the searched
+          text in their name.
+      tags:
+      - operators
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Operator'
+          description: ''
+    post:
+      operationId: operators_create
+      description: Add a new operator.
+      summary: Add a new operator.
+      tags:
+      - operators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Operator'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Operator'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Operator'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+          description: ''
+  /operators/{name}/:
+    get:
+      operationId: operators_retrieve
+      description: ' This endpoint allows you to retrieve an operator by its UUID. '
+      summary: Get an operator by UUID.
+      parameters:
+      - in: path
+        name: name
+        schema:
+          type: string
+          description: The name of the operator
+        required: true
+      tags:
+      - operators
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+          description: ''
+    put:
+      operationId: operators_update
+      description: ' This endpoint allows you to update an existing operator.'
+      summary: Update an operator by UUID.
+      parameters:
+      - in: path
+        name: name
+        schema:
+          type: string
+          description: The name of the operator
+        required: true
+      tags:
+      - operators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Operator'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Operator'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Operator'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+          description: ''
+    patch:
+      operationId: operators_partial_update
+      description: ' This endpoint allows you to update an existing operator partially,
+        by only sending the parameters you want to update. '
+      summary: Partially update a operator by UUID.
+      parameters:
+      - in: path
+        name: name
+        schema:
+          type: string
+          description: The name of the operator
+        required: true
+      tags:
+      - operators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOperator'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOperator'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOperator'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operator'
+          description: ''
+    delete:
+      operationId: operators_destroy
+      description: Delete a specific operator.
+      summary: Delete a operator.
+      parameters:
+      - in: path
+        name: name
+        schema:
+          type: string
+          description: The name of the operator
+        required: true
+      tags:
+      - operators
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /site-pictures/:
+    get:
+      operationId: site_pictures_list
+      description: " This endpoint can be used to retrieve all images of a specific\
+        \ site. \n                          Getting the images of a specific site\
+        \ is done by adding the query parameter site with the uuid of the desired\
+        \ site. "
+      summary: List all site pictures.
+      parameters:
+      - in: query
+        name: site
+        schema:
+          type: string
+          format: uuid
+        description: The uuid of the site for which you want to retrieve the associated
+          images
+      tags:
+      - site-pictures
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SitePicture'
+          description: ''
+    post:
+      operationId: site_pictures_create
+      description: Add a picture to a site.
+      summary: Add a picture to a site.
+      tags:
+      - site-pictures
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                picture:
+                  description: The picture to be stored
+                  type: string
+                  format: binary
+                site:
+                  description: The uuid of the site for which a picture is being added.
+                  type: string
+              required:
+              - picture
+              - site
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SitePicture'
+          description: ''
+  /site-pictures/{uuid}/:
+    delete:
+      operationId: site_pictures_destroy
+      description: Delete a picture associated to a site.
+      summary: Delete a picture associated to a site.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this site picture.
+        required: true
+      tags:
+      - site-pictures
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /sites/:
+    get:
+      operationId: sites_list
+      description: " This endpoint can be used to retrieve all Sites. \n         \
+        \                 You can filter the Sites using the different filters described\
+        \ below. "
+      summary: List all Sites.
+      parameters:
+      - in: query
+        name: city
+        schema:
+          type: string
+        description: City
+      - in: query
+        name: country
+        schema:
+          type: string
+        description: Country
+      - in: query
+        name: geoportalId
+        schema:
+          type: string
+        description: External ID “registre des addresses” (geoportal ID)
+      - in: query
+        name: name
+        schema:
+          type: string
+        description: The exact name of the Sites you want to retrieve.
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: postId
+        schema:
+          type: string
+        description: External ID “Post database”
+      - in: query
+        name: postalCode
+        schema:
+          type: string
+        description: Postal Code
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: The search query parameter can be used to search the Sites by
+          their name. The search will return any Unit that contain the searched text
+          in their name.
+      - in: query
+        name: streetName
+        schema:
+          type: string
+        description: Street Name
+      - in: query
+        name: streetNumber
+        schema:
+          type: string
+        description: Street Number
+      - in: query
+        name: syndic
+        schema:
+          type: string
+          format: uuid
+        description: The UUID of the Syndic for which you want ot retrieve the linked
+          Sites
+      tags:
+      - sites
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SiteDetail'
+          description: ''
+    post:
+      operationId: sites_create
+      description: Add a new Site.
+      summary: Add a new Site.
+      tags:
+      - sites
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Site'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Site'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Site'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Site'
+          description: ''
+  /sites/{uuid}/:
+    get:
+      operationId: sites_retrieve
+      description: ' This endpoint allows you to retrieve a Site by its UUID. '
+      summary: Get a Site by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this site.
+        required: true
+      tags:
+      - sites
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteDetail'
+          description: ''
+    put:
+      operationId: sites_update
+      description: ' This endpoint allows you to update an existing Site.'
+      summary: Update a Site by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this site.
+        required: true
+      tags:
+      - sites
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Site'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Site'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Site'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Site'
+          description: ''
+    patch:
+      operationId: sites_partial_update
+      description: ' This endpoint allows you to update an existing Site partially,
+        by only sending the parameters you want to update. '
+      summary: Partially update a Site by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this site.
+        required: true
+      tags:
+      - sites
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSite'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Site'
+          description: ''
+    delete:
+      operationId: sites_destroy
+      description: Delete a specific Site.
+      summary: Delete a Site.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this site.
+        required: true
+      tags:
+      - sites
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /syndics/:
+    get:
+      operationId: syndics_list
+      description: " This endpoint can be used to retrieve all Syndics. \n       \
+        \                   You can filter the Syndics by address or search a Syndic\
+        \ by name. The search returns all Syndics that have a name that contains the\
+        \ searched string. "
+      summary: List all Syndics.
+      parameters:
+      - in: query
+        name: city
+        schema:
+          type: string
+        description: The city for which you want to retrieve the associated Syndics.
+      - in: query
+        name: country
+        schema:
+          type: string
+        description: The country for which you want to retrieve the associated Syndics.
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: oredering
+        schema:
+          type: string
+        description: Can be used to order the result by name (ascending or descending).
+          e.g. `name` will order the results by ascending names, `-name` will order
+          the results by descending names.
+      - in: query
+        name: postalCode
+        schema:
+          type: string
+        description: The postal code for which you want to retrieve the associated
+          Syndics.
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: The search query parameter can be used to search the Syndics
+          by their name. The search will return any Syndics that contain the searched
+          text in their name.
+      - in: query
+        name: streetName
+        schema:
+          type: string
+        description: The street name for which you want to retrieve the associated
+          Syndics.
+      - in: query
+        name: streetNumber
+        schema:
+          type: string
+        description: The street number for which you want to retrieve the associated
+          Syndics.
+      tags:
+      - syndics
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Syndic'
+          description: ''
+    post:
+      operationId: syndics_create
+      description: Add a new Syndic.
+      summary: Add a new Syndic.
+      tags:
+      - syndics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Syndic'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Syndic'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Syndic'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Syndic'
+          description: ''
+  /syndics/{uuid}/:
+    get:
+      operationId: syndics_retrieve
+      description: ' This endpoint allows you to retrieve a Syndic by its UUID. '
+      summary: Get a Syndic by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this syndic.
+        required: true
+      tags:
+      - syndics
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Syndic'
+          description: ''
+    put:
+      operationId: syndics_update
+      description: ' This endpoint allows you to update an existing Syndic.'
+      summary: Update a Syndic by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this syndic.
+        required: true
+      tags:
+      - syndics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Syndic'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Syndic'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Syndic'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Syndic'
+          description: ''
+    patch:
+      operationId: syndics_partial_update
+      description: ' This endpoint allows you to update an existing Syndic partially,
+        by only sending the parameters you want to update. '
+      summary: Partially update a Syndic by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this syndic.
+        required: true
+      tags:
+      - syndics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSyndic'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSyndic'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSyndic'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Syndic'
+          description: ''
+    delete:
+      operationId: syndics_destroy
+      description: Delete a specific Syndic.
+      summary: Delete a Syndic.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this syndic.
+        required: true
+      tags:
+      - syndics
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /units/:
+    get:
+      operationId: units_list
+      description: " This endpoint can be used to retrieve all Units. \n         \
+        \                 You can filter the Unity using the different filters described\
+        \ below. "
+      summary: List all Units.
+      parameters:
+      - in: query
+        name: localUnitIdentifier
+        schema:
+          type: string
+        description: Local unit identifier (Ex. « Apt 1.1 »)
+      - in: query
+        name: preWiredRouteIdentifier
+        schema:
+          type: string
+        description: Identifier of the prewired fiber route at Post Technologies (169xxxx
+          reference)
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: The search query parameter can be used to search the Units by
+          their localUnitIdentifier, their telecomUnitIdentifier or their preWiredRouteIdentifier.
+          The search will return any Unit that contain the searched text any of these
+          fields.
+      - in: query
+        name: telecomUnitIdentifier
+        schema:
+          type: string
+        description: Telecom unit identifier (Ex. « 101 »)
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - COMMONS
+          - ELEVATOR_ROOM
+          - PARKING
+          - PRIVATE_AREA
+          - TECHNICAL_ROOM
+        description: |-
+          Type (PRIVATE_AREA, COMMONS, PARKING, TECHNICAL_ROOM, ELEVATOR_ROOM…)
+
+          * `PRIVATE_AREA` - PRIVATE_AREA
+          * `COMMONS` - COMMONS
+          * `PARKING` - PARKING
+          * `TECHNICAL_ROOM` - TECHNICAL_ROOM
+          * `ELEVATOR_ROOM` - ELEVATOR_ROOM
+      tags:
+      - units
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UnitDetail'
+          description: ''
+    post:
+      operationId: units_create
+      description: Add a new Unit to a site or to a block. To add an NTP or Wire to
+        a unit the dedicated ntps or wires endpoints need to be used.
+      summary: Add a new Unit.
+      tags:
+      - units
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Unit'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Unit'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Unit'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+  /units/{uuid}/:
+    get:
+      operationId: units_retrieve
+      description: ' This endpoint allows you to retrieve a Unit by its UUID. '
+      summary: Get a Unit by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this unit.
+        required: true
+      tags:
+      - units
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnitDetail'
+          description: ''
+    put:
+      operationId: units_update
+      description: ' This endpoint allows you to update an existing Unit. To update
+        the NTPs or Wires associated to a unit the dedicated ntps and wires endpoints
+        need to be used.'
+      summary: Update a Unit by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this unit.
+        required: true
+      tags:
+      - units
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Unit'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Unit'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Unit'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+    patch:
+      operationId: units_partial_update
+      description: ' This endpoint allows you to update an existing Unit partially,
+        by only sending the parameters you want to update. To update the NTPs or Wires
+        associated to a unit the dedicated ntps and wires endpoints need to be used.'
+      summary: Partially update a Unit by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this unit.
+        required: true
+      tags:
+      - units
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUnit'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUnit'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUnit'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+          description: ''
+    delete:
+      operationId: units_destroy
+      description: Delete a specific Unit. This will also delete all the NTPs in that
+        Unit as well as all the wires.
+      summary: Delete a Unit.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this unit.
+        required: true
+      tags:
+      - units
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /wire-types/:
+    get:
+      operationId: wire_types_list
+      description: " This endpoint can be used to retrieve all Wire Types. \n    \
+        \                      You can filter the Wire Types using the different filters\
+        \ described below. "
+      summary: List all Wire Types.
+      parameters:
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: The search query parameter can be used to search the wire types
+          by their name. The search will return any wire type that contain the searched
+          text in their name.
+      tags:
+      - wire-types
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WireType'
+          description: ''
+    post:
+      operationId: wire_types_create
+      description: Add a new Wire Type.
+      summary: Add a new Wire Type.
+      tags:
+      - wire-types
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WireType'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WireType'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WireType'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WireType'
+          description: ''
+  /wire-types/{uuid}/:
+    get:
+      operationId: wire_types_retrieve
+      description: ' This endpoint allows you to retrieve a Wire Type by its UUID. '
+      summary: Get a Wire Type by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wire type.
+        required: true
+      tags:
+      - wire-types
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WireType'
+          description: ''
+    put:
+      operationId: wire_types_update
+      description: ' This endpoint allows you to update an existing Wire Type.'
+      summary: Update a Wire Type by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wire type.
+        required: true
+      tags:
+      - wire-types
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WireType'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WireType'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WireType'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WireType'
+          description: ''
+    patch:
+      operationId: wire_types_partial_update
+      description: ' This endpoint allows you to update an existing Wire Type partially,
+        by only sending the parameters you want to update. '
+      summary: Partially update a Wire Type by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wire type.
+        required: true
+      tags:
+      - wire-types
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWireType'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWireType'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWireType'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WireType'
+          description: ''
+    delete:
+      operationId: wire_types_destroy
+      description: Delete a specific Wire Type.
+      summary: Delete a Wire Type.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wire type.
+        required: true
+      tags:
+      - wire-types
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /wires/:
+    get:
+      operationId: wires_list
+      description: " This endpoint can be used to retrieve all Wires. \n         \
+        \                 You can filter the Wires using the different filters described\
+        \ below. "
+      summary: List all Wires.
+      parameters:
+      - in: query
+        name: type
+        schema:
+          type: string
+          format: uuid
+        description: The UUID of the wire types for which you want to retrieve the
+          wires.
+      - in: query
+        name: unit
+        schema:
+          type: string
+          format: uuid
+        description: The UUID of the unit for which you want to retrieve the wires.
+      tags:
+      - wires
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WireDetail'
+          description: ''
+    post:
+      operationId: wires_create
+      description: Add a new Wire.
+      summary: Add a new Wire.
+      tags:
+      - wires
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Wire'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Wire'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Wire'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wire'
+          description: ''
+  /wires/{uuid}/:
+    get:
+      operationId: wires_retrieve
+      description: ' This endpoint allows you to retrieve a Wire by its UUID. '
+      summary: Get a Wire by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wire.
+        required: true
+      tags:
+      - wires
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WireDetail'
+          description: ''
+    put:
+      operationId: wires_update
+      description: ' This endpoint allows you to update an existing Wire.'
+      summary: Update a Wire by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wire.
+        required: true
+      tags:
+      - wires
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Wire'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Wire'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Wire'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wire'
+          description: ''
+    patch:
+      operationId: wires_partial_update
+      description: ' This endpoint allows you to update an existing Wire partially,
+        by only sending the parameters you want to update. '
+      summary: Partially update a Wire by UUID.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wire.
+        required: true
+      tags:
+      - wires
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWire'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWire'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWire'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wire'
+          description: ''
+    delete:
+      operationId: wires_destroy
+      description: Delete a specific Wire.
+      summary: Delete a Wire.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wire.
+        required: true
+      tags:
+      - wires
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    Address:
+      type: object
+      properties:
+        streetNumber:
+          type: string
+          description: Street Number
+        streetName:
+          type: string
+          description: Street Name
+        postalCode:
+          type: string
+          description: Postal Code
+        city:
+          type: string
+          description: City
+        country:
+          type: string
+          description: 'Country (default: Luxembourg)'
+      required:
+      - city
+      - postalCode
+      - streetName
+      - streetNumber
+    Block:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        accessControlProcedure:
+          type: string
+          description: Specific Access control procedure
+        name:
+          type: string
+          description: Name (Ex. “Bloc C”)
+        site:
+          type: string
+          format: uuid
+          description: The UUID of the site to which the block is linked.
+      required:
+      - accessControlProcedure
+      - name
+      - site
+      - uuid
+    BlockDetail:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        accessControlProcedure:
+          type: string
+          description: Specific Access control procedure
+        pictures:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlockPicture'
+          description: List of picture URLs
+        units:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnitDetail'
+          description: List of units in the block
+        name:
+          type: string
+          description: Name (Ex. “Bloc C”)
+        site:
+          type: string
+          format: uuid
+          description: The UUID of the site to which the block is linked.
+      required:
+      - accessControlProcedure
+      - name
+      - pictures
+      - site
+      - units
+      - uuid
+    BlockPicture:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        picture:
+          type: string
+          format: uri
+          description: The URL of the picture
+        block:
+          type: string
+          format: uuid
+          description: The block to which the picture belongs
+      required:
+      - block
+      - picture
+      - uuid
+    NetworkTerminationPoint:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        operatorNtpIdentifier:
+          type: string
+          description: Operator's NTP identifier
+        operator:
+          type: string
+          description: The name of the operator (Post, Eltrona, Local antenne collective,
+            Luxconnect) as retrieved from the operators endpoint.
+      required:
+      - operator
+      - operatorNtpIdentifier
+      - uuid
+    Operator:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the operator
+      required:
+      - name
+    PatchedBlock:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        accessControlProcedure:
+          type: string
+          description: Specific Access control procedure
+        name:
+          type: string
+          description: Name (Ex. “Bloc C”)
+        site:
+          type: string
+          format: uuid
+          description: The UUID of the site to which the block is linked.
+    PatchedNetworkTerminationPoint:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        operatorNtpIdentifier:
+          type: string
+          description: Operator's NTP identifier
+        operator:
+          type: string
+          description: The name of the operator (Post, Eltrona, Local antenne collective,
+            Luxconnect) as retrieved from the operators endpoint.
+    PatchedOperator:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the operator
+    PatchedSite:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        address:
+          $ref: '#/components/schemas/Address'
+        geoportalId:
+          type: string
+          description: External ID “registre des addresses” (geoportal ID)
+        postId:
+          type: string
+          description: External ID “Post database”
+        accessControlProcedure:
+          type: string
+          description: Access control procedure
+        name:
+          type: string
+          description: The name of the site
+        latitude:
+          type: number
+          format: double
+          maximum: 90.0
+          minimum: -90.0
+          description: Latitude of the site (GPS Coordinate)
+        longitude:
+          type: number
+          format: double
+          maximum: 180.0
+          minimum: -180.0
+          description: Longitude of the site (GPS Coordinate)
+        syndic:
+          type: string
+          format: uuid
+          description: UUID of the Syndic in charge (stored or query at Progetis)
+    PatchedSyndic:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        address:
+          $ref: '#/components/schemas/Address'
+        fixedPhone:
+          type: string
+          description: Fixed phone number
+        mobilePhone:
+          type: string
+          description: Mobile phone number
+        name:
+          type: string
+          description: Name of the Syndic
+    PatchedUnit:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        localUnitIdentifier:
+          type: string
+          description: Local unit identifier (Ex. « Apt 1.1 »)
+        telecomUnitIdentifier:
+          type: string
+          description: Telecom unit identifier (Ex. « 101 »)
+        preWiredRouteIdentifier:
+          type: string
+          description: Identifier of the prewired fiber route at Post Technologies
+            (169xxxx reference)
+        type:
+          allOf:
+          - $ref: '#/components/schemas/UnitType'
+          description: |-
+            Type (PRIVATE_AREA, COMMONS, PARKING, TECHNICAL_ROOM, ELEVATOR_ROOM…)
+
+            * `PRIVATE_AREA` - PRIVATE_AREA
+            * `COMMONS` - COMMONS
+            * `PARKING` - PARKING
+            * `TECHNICAL_ROOM` - TECHNICAL_ROOM
+            * `ELEVATOR_ROOM` - ELEVATOR_ROOM
+        site:
+          type: string
+          format: uuid
+          nullable: true
+          description: The UUID of the site to which the picture belongs.
+        block:
+          type: string
+          format: uuid
+          nullable: true
+          description: The block to which the picture belongs
+    PatchedWire:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        patchNumberAtUnit:
+          type: string
+          description: The patch number or identifier used in the unit
+        patchNumberAtNtp:
+          type: string
+          description: The patch number of identifier in the ntp location
+        unit:
+          type: string
+          format: uuid
+          description: UUID of the unit that the wire connects to the ntp
+        type:
+          type: string
+          format: uuid
+          description: UUID of the type of wire
+        ntp:
+          type: string
+          format: uuid
+          description: UUID of the ntp that the wire connects to.
+    PatchedWireType:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        maximumThroughput:
+          type: string
+          description: The maximum throughput in Mbps
+        name:
+          type: string
+          description: A name that identifies the type of wire (e.g. ETH CAT5E, ...)
+    Site:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        address:
+          $ref: '#/components/schemas/Address'
+        geoportalId:
+          type: string
+          description: External ID “registre des addresses” (geoportal ID)
+        postId:
+          type: string
+          description: External ID “Post database”
+        accessControlProcedure:
+          type: string
+          description: Access control procedure
+        name:
+          type: string
+          description: The name of the site
+        latitude:
+          type: number
+          format: double
+          maximum: 90.0
+          minimum: -90.0
+          description: Latitude of the site (GPS Coordinate)
+        longitude:
+          type: number
+          format: double
+          maximum: 180.0
+          minimum: -180.0
+          description: Longitude of the site (GPS Coordinate)
+        syndic:
+          type: string
+          format: uuid
+          description: UUID of the Syndic in charge (stored or query at Progetis)
+      required:
+      - accessControlProcedure
+      - address
+      - geoportalId
+      - latitude
+      - longitude
+      - name
+      - postId
+      - syndic
+      - uuid
+    SiteDetail:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        address:
+          $ref: '#/components/schemas/Address'
+        geoportalId:
+          type: string
+          description: External ID “registre des addresses” (geoportal ID)
+        postId:
+          type: string
+          description: External ID “Post database”
+        accessControlProcedure:
+          type: string
+          description: Access control procedure
+        syndic:
+          $ref: '#/components/schemas/Syndic'
+        blocks:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlockDetail'
+          description: List of blocks in the site
+        units:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnitDetail'
+          description: List of units directly linked to the site (not linked to a
+            block in the site)
+        name:
+          type: string
+          description: The name of the site
+        latitude:
+          type: number
+          format: double
+          maximum: 90.0
+          minimum: -90.0
+          description: Latitude of the site (GPS Coordinate)
+        longitude:
+          type: number
+          format: double
+          maximum: 180.0
+          minimum: -180.0
+          description: Longitude of the site (GPS Coordinate)
+      required:
+      - accessControlProcedure
+      - address
+      - blocks
+      - geoportalId
+      - latitude
+      - longitude
+      - name
+      - postId
+      - syndic
+      - units
+      - uuid
+    SitePicture:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        picture:
+          type: string
+          format: uri
+          description: The URL of the picture
+        site:
+          type: string
+          format: uuid
+          description: The UUID of the site to which the picture belongs.
+      required:
+      - picture
+      - site
+      - uuid
+    Syndic:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        address:
+          $ref: '#/components/schemas/Address'
+        fixedPhone:
+          type: string
+          description: Fixed phone number
+        mobilePhone:
+          type: string
+          description: Mobile phone number
+        name:
+          type: string
+          description: Name of the Syndic
+      required:
+      - address
+      - fixedPhone
+      - mobilePhone
+      - name
+      - uuid
+    Unit:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        localUnitIdentifier:
+          type: string
+          description: Local unit identifier (Ex. « Apt 1.1 »)
+        telecomUnitIdentifier:
+          type: string
+          description: Telecom unit identifier (Ex. « 101 »)
+        preWiredRouteIdentifier:
+          type: string
+          description: Identifier of the prewired fiber route at Post Technologies
+            (169xxxx reference)
+        type:
+          allOf:
+          - $ref: '#/components/schemas/UnitType'
+          description: |-
+            Type (PRIVATE_AREA, COMMONS, PARKING, TECHNICAL_ROOM, ELEVATOR_ROOM…)
+
+            * `PRIVATE_AREA` - PRIVATE_AREA
+            * `COMMONS` - COMMONS
+            * `PARKING` - PARKING
+            * `TECHNICAL_ROOM` - TECHNICAL_ROOM
+            * `ELEVATOR_ROOM` - ELEVATOR_ROOM
+        site:
+          type: string
+          format: uuid
+          nullable: true
+          description: The UUID of the site to which the picture belongs.
+        block:
+          type: string
+          format: uuid
+          nullable: true
+          description: The block to which the picture belongs
+      required:
+      - localUnitIdentifier
+      - preWiredRouteIdentifier
+      - telecomUnitIdentifier
+      - type
+      - uuid
+    UnitDetail:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        localUnitIdentifier:
+          type: string
+          description: Local unit identifier (Ex. « Apt 1.1 »)
+        telecomUnitIdentifier:
+          type: string
+          description: Telecom unit identifier (Ex. « 101 »)
+        preWiredRouteIdentifier:
+          type: string
+          description: Identifier of the prewired fiber route at Post Technologies
+            (169xxxx reference)
+        ntps:
+          type: array
+          items:
+            $ref: '#/components/schemas/NetworkTerminationPoint'
+          description: List of NTPs
+        wires:
+          type: array
+          items:
+            $ref: '#/components/schemas/WireDetail'
+          description: List of wires connecting the unit to an NTP
+        type:
+          allOf:
+          - $ref: '#/components/schemas/UnitType'
+          description: |-
+            Type (PRIVATE_AREA, COMMONS, PARKING, TECHNICAL_ROOM, ELEVATOR_ROOM…)
+
+            * `PRIVATE_AREA` - PRIVATE_AREA
+            * `COMMONS` - COMMONS
+            * `PARKING` - PARKING
+            * `TECHNICAL_ROOM` - TECHNICAL_ROOM
+            * `ELEVATOR_ROOM` - ELEVATOR_ROOM
+        site:
+          type: string
+          format: uuid
+          nullable: true
+          description: The UUID of the site to which the picture belongs.
+        block:
+          type: string
+          format: uuid
+          nullable: true
+          description: The block to which the picture belongs
+      required:
+      - localUnitIdentifier
+      - ntps
+      - preWiredRouteIdentifier
+      - telecomUnitIdentifier
+      - type
+      - uuid
+      - wires
+    UnitType:
+      enum:
+      - PRIVATE_AREA
+      - COMMONS
+      - PARKING
+      - TECHNICAL_ROOM
+      - ELEVATOR_ROOM
+      type: string
+      description: |-
+        * `PRIVATE_AREA` - PRIVATE_AREA
+        * `COMMONS` - COMMONS
+        * `PARKING` - PARKING
+        * `TECHNICAL_ROOM` - TECHNICAL_ROOM
+        * `ELEVATOR_ROOM` - ELEVATOR_ROOM
+    Wire:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        patchNumberAtUnit:
+          type: string
+          description: The patch number or identifier used in the unit
+        patchNumberAtNtp:
+          type: string
+          description: The patch number of identifier in the ntp location
+        unit:
+          type: string
+          format: uuid
+          description: UUID of the unit that the wire connects to the ntp
+        type:
+          type: string
+          format: uuid
+          description: UUID of the type of wire
+        ntp:
+          type: string
+          format: uuid
+          description: UUID of the ntp that the wire connects to.
+      required:
+      - ntp
+      - patchNumberAtNtp
+      - patchNumberAtUnit
+      - type
+      - unit
+      - uuid
+    WireDetail:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        patchNumberAtUnit:
+          type: string
+          description: The patch number or identifier used in the unit
+        patchNumberAtNtp:
+          type: string
+          description: The patch number of identifier in the ntp location
+        type:
+          $ref: '#/components/schemas/WireType'
+        ntp:
+          $ref: '#/components/schemas/NetworkTerminationPoint'
+        unit:
+          type: string
+          format: uuid
+          description: UUID of the unit that the wire connects to the ntp
+      required:
+      - ntp
+      - patchNumberAtNtp
+      - patchNumberAtUnit
+      - type
+      - unit
+      - uuid
+    WireType:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        maximumThroughput:
+          type: string
+          description: The maximum throughput in Mbps
+        name:
+          type: string
+          description: A name that identifies the type of wire (e.g. ETH CAT5E, ...)
+      required:
+      - maximumThroughput
+      - name
+      - uuid
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
+tags:
+- name: block-pictures
+  description: Endpoint used to store or delete images associated with a specific
+    block.
+- name: blocks
+  description: A block represents a specific building or sub-division inside a large
+    residential site.
+- name: ntps
+  description: An NTP represents the demarcation point between the telecom operator
+    network and the in-building infrastructure. It can be located in a dedicated building
+    unit (e.g. a technical room) or the commons.
+- name: operators
+  description: An operator represents a telecommunication provider.
+- name: site-pictures
+  description: Endpoint used to store or delete images associated with a specific
+    site.
+- name: sites
+  description: A site represents a building or a complex of buildings.
+- name: syndics
+  description: A syndic is responsible for managing one or more sites.
+- name: units
+  description: A unit represents a logical space division inside a site or a block.
+- name: wire-types
+  description: A wire type represents a type of wire (e.g. ETH CAT5E).
+- name: wires
+  description: A wire represents a physical cable connecting a unit to an NTP.
